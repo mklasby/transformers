@@ -109,6 +109,7 @@ class AssistedCandidateGenerator(CandidateGenerator):
 
         # Prepare the assistant and the starting number of candidate tokens
         self.assistant_model = assistant_model
+        self.default_num_assistant_tokens = assistant_model.generation_config.num_assistant_tokens
         self.num_assistant_tokens = assistant_model.generation_config.num_assistant_tokens
         self.assistant_confidence_threshold = assistant_model.generation_config.assistant_confidence_threshold
 
