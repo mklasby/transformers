@@ -4168,7 +4168,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
 
             # Make sure tied weights are tied before creating the device map.
             model.tie_weights()
-            device_map = infer_auto_device_map(model, dtype=target_dtype, **device_map_kwargs)
+            device_map = infer_auto_device_map(model, dtype=target_dtype, **device_map_kwargs, verbose=True,)
 
             if hf_quantizer is not None:
                 hf_quantizer.validate_environment(device_map=device_map)
