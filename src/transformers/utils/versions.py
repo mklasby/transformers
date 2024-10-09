@@ -15,6 +15,7 @@
 Utilities for working with package versions
 """
 
+import logging
 import importlib.metadata
 import operator
 import re
@@ -41,9 +42,11 @@ def _compare_versions(op, got_ver, want_ver, requirement, pkg, hint):
             f" reinstalling {pkg}."
         )
     if not ops[op](version.parse(got_ver), version.parse(want_ver)):
-        raise ImportError(
-            f"{requirement} is required for a normal functioning of this module, but found {pkg}=={got_ver}.{hint}"
-        )
+        _logger = logging.getLogger(__name__)
+        _logger.warning(f"{requirement} is required for a normal functioning of this module, but found {pkg}=={got_ver}.{hint}\n Continuing into script but may hit bugs!")
+        # raise ImportError(
+        #     f"{requirement} is required for a normal functioning of this module, but found {pkg}=={got_ver}.{hint}"
+        # )
 
 
 def require_version(requirement: str, hint: Optional[str] = None) -> None:
