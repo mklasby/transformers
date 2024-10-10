@@ -109,6 +109,7 @@ class TrainerState:
     trial_name: str = None
     trial_params: Dict[str, Union[str, float, int, bool]] = None
     stateful_callbacks: List["TrainerCallback"] = None
+    json_serialization: bool = False
 
     def __post_init__(self):
         if self.log_history is None:
@@ -138,17 +139,55 @@ class TrainerState:
             self.stateful_callbacks = stateful_callbacks
 
     def save_to_json(self, json_path: str):
-        """Save the content of this instance in JSON format inside `json_path`."""
-        json_string = json.dumps(dataclasses.asdict(self), indent=2, sort_keys=True) + "\n"
-        with open(json_path, "w", encoding="utf-8") as f:
-            f.write(json_string)
+        
+        if self.json_serialization:
+            logger.info("Saving TrainerState to json only...")
+            """Save the content of this instance in JSON format inside `json_path`."""
+            json_string = json.dumps(dataclasses.asdict(self), indent=2, sort_keys=True) + "\n"
+            with open(json_path, "w", encoding="utf-8") as f:
+                f.write(json_string)
+        else:
+            import time
+            import pathlib
+            import torch
+            logger.info("Saving TrainerState to mixed json and pickles...")
+            start = time.time()
+            stateful_callbacks = self.stateful_callbacks
+            self.stateful_callbacks = {}
+            json_string = json.dumps(dataclasses.asdict(self), indent=2, sort_keys=True) + "\n"
+            with open(json_path, "w", encoding="utf-8") as f:
+                f.write(json_string)
+            stateful_callback_path = pathlib.Path(json_path).parent / "stateful_callbacks.pt"
+            torch.save(stateful_callbacks, stateful_callback_path)
+            self.stateful_callbacks = stateful_callbacks
+            end = time.time()
+            logger.info(f"TrainerState dump completed in {end-start} seconds")
 
     @classmethod
     def load_from_json(cls, json_path: str):
         """Create an instance from the content of `json_path`."""
-        with open(json_path, "r", encoding="utf-8") as f:
-            text = f.read()
-        return cls(**json.loads(text))
+        if cls.json_serialization:
+            with open(json_path, "r", encoding="utf-8") as f:
+                text = f.read()
+            return cls(**json.loads(text))
+        else:
+            import time
+            import pathlib
+            import torch
+            logger.info("Loading TrainerState from json and pickles...")
+            start = time.time()
+            with open(json_path, "r", encoding="utf-8") as f:
+                text = f.read()
+            instance = cls(**json.loads(text))
+            stateful_callback_path = pathlib.Path(json_path).parent / "stateful_callbacks.pt"
+            if stateful_callback_path.exists():
+                stateful_callbakcs = torch.load(stateful_callback_path)
+                instance.stateful_callbacks = stateful_callbakcs
+            else:
+                logger.warning("Stateful callbacks not found in ckpt dir!")
+            end = time.time()
+            logger.info(f"TrainerState load completed in {end-start} seconds")
+            return instance
 
 
 class ExportableState:
