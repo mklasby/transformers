@@ -129,6 +129,7 @@ class Qwen2RotaryEmbedding(nn.Module):
         inv_freq, self.attention_scaling = self.rope_init_fn(self.config, device, **self.rope_kwargs)
         self.register_buffer("inv_freq", inv_freq, persistent=False)
         self.original_inv_freq = self.inv_freq
+        self.inv_freq = self.inv_freq.to("cuda:0")  # hack for this specific transformers commit
 
     def _dynamic_frequency_update(self, position_ids, device):
         """
