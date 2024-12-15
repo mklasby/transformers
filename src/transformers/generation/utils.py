@@ -1308,10 +1308,12 @@ class GenerationMixin:
                     f"`assistant_tokenizer` is not required when the main and assistant models use the same tokenizer. Please omit `assistant_tokenizer` from `generate()` {doc_reference}."
                 )
         else:
-            if tokenizer is None or assistant_tokenizer is None:
-                raise ValueError(
-                    f"The main and assistant moedels have different tokenizers. Please provide `tokenizer` and `assistant_tokenizer` to `generate()` {doc_reference}."
-                )
+            pass
+            # logger.warning("ASSISTANT AND TARGET HAVE DIFFERENT VOCAB SIZES BUT YOU HAVE DISABLED THIS CHECK!")
+        #     if tokenizer is None or assistant_tokenizer is None:
+        #         raise ValueError(
+        #             f"The main and assistant moedels have different tokenizers. Please provide `tokenizer` and `assistant_tokenizer` to `generate()` {doc_reference}."
+        #         )
 
     def _validate_model_kwargs(self, model_kwargs: Dict[str, Any]):
         """Validates model kwargs for generation. Generate argument typos will also be caught here."""
